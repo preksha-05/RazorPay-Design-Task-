@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cleartrip · AI holiday planner for business travellers (concept)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --or:#FF4F17; --or-dk:#E2400D; --or-lt:#FFF3EE; --ink:#1A1A1A; --grey:#808080; --grey2:#4D4D4D;
+  --line:#E7E7E7; --bg:#F6F6F6; --white:#fff; --blue:#3366CC; --blue-lt:#EEF3FC;
+  --green:#11A670; --green-lt:#E8F7F1; --yel:#B26B00; --yel-lt:#FFF6E0; --red:#D63B30; --red-lt:#FDEDEC;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:Inter,system-ui,-apple-system,sans-serif;color:var(--ink);background:#ECEBE8;font-size:14px;line-height:1.4;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:inherit}
+.stage{min-height:100%;display:flex;gap:40px;align-items:center;justify-content:center;padding:28px}
+.phone{width:390px;height:844px;background:var(--white);border-radius:46px;box-shadow:0 0 0 10px #111,0 0 0 11px #333,0 30px 80px rgba(0,0,0,.3);position:relative;overflow:hidden;flex:none}
+.island{position:absolute;left:50%;top:10px;transform:translateX(-50%);width:118px;height:32px;background:#000;border-radius:20px;z-index:80}
+.status{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-weight:600;font-size:14px;background:var(--white);position:relative;z-index:5}
+.screen{position:absolute;top:44px;left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;background:var(--white)}
+.screen::-webkit-scrollbar{display:none}
+.screen.grey{background:var(--bg)}
+@media (max-width:860px){.stage{padding:0;display:block}.notes{display:none}.phone{width:100%;height:100dvh;border-radius:0;box-shadow:none}.island{display:none}}
+
+/* notes */
+.notes{width:330px;max-height:844px;overflow:auto;font-size:13px;color:#333}
+.notes .k{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#888}
+.notes h1{font-size:30px;font-weight:800;letter-spacing:-.8px;margin-top:6px}
+.notes h1 span{color:var(--or)}
+.notes .box{background:#fff;border-radius:12px;padding:14px;margin-top:12px;border:1px solid var(--line)}
+.notes h3{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#888;margin-bottom:6px}
+.notes .nb{font-size:13.5px;line-height:1.5}
+.jump{display:flex;flex-wrap:wrap;gap:6px}
+.jump button{font-size:12px;padding:5px 10px;border-radius:20px;border:1px solid var(--line);background:#fff}
+.jump button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tg{display:flex;justify-content:space-between;align-items:center;width:100%;padding:8px 0;font-size:12.5px;border-bottom:1px solid #f0f0f0}
+.tg:last-child{border:0}
+.sw{width:32px;height:18px;border-radius:9px;background:#ccc;position:relative;transition:.2s;flex:none}
+.sw::after{content:"";position:absolute;left:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:.2s}
+.on>.sw,.sw.on{background:var(--green)}.on>.sw::after,.sw.on::after{left:16px}
+
+/* basics */
+.ico{width:20px;height:20px;flex:none}
+.hdr{position:sticky;top:0;z-index:10;background:var(--white);display:flex;align-items:center;gap:12px;padding:10px 16px 12px;border-bottom:1px solid var(--line)}
+.hdr .t{font-size:16px;font-weight:700}
+.hdr .s{font-size:12px;color:var(--grey)}
+.pad{padding:16px}
+.sec{background:var(--white);padding:16px;margin-bottom:8px}
+.h{font-size:20px;font-weight:700;letter-spacing:-.3px;line-height:1.25}
+.lbl{font-size:15px;font-weight:700;margin-bottom:10px}
+.muted{color:var(--grey);font-size:12.5px}
+.row{display:flex;align-items:center;gap:10px}
+.sp{justify-content:space-between}
+.btn{height:48px;border-radius:8px;background:var(--or);color:#fff;font-weight:700;font-size:15px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;text-align:center}
+.btn:active{background:var(--or-dk)}
+.btn.out{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn.sm{height:40px;font-size:14px}
+.link{color:var(--blue);font-weight:600;font-size:13px}
+.chip{padding:8px 14px;border-radius:20px;border:1px solid var(--line);font-size:13.5px;font-weight:500;background:#fff;white-space:nowrap}
+.chip.on{border-color:var(--or);background:var(--or-lt);color:var(--or-dk);font-weight:600}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.tag{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap}
+.tag.me{background:var(--or-lt);color:var(--or-dk)}
+.tag.co{background:var(--blue-lt);color:var(--blue)}
+.tag.flex{background:#F1EDFF;color:#5B3FD0}
+.tag.ok{background:var(--green-lt);color:var(--green)}
+.ai{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--or-dk);background:var(--or-lt);padding:3px 8px;border-radius:20px}
+.card{border:1px solid var(--line);border-radius:12px;background:#fff}
+.fade{animation:fade .3s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.bar{position:absolute;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 16px 24px;z-index:20;box-shadow:0 -4px 16px rgba(0,0,0,.04)}
+.price{font-size:20px;font-weight:800;letter-spacing:-.3px}
+
+/* trips */
+.logo{font-weight:800;font-size:22px;letter-spacing:-.8px;display:flex;align-items:center;gap:4px}
+.logo i{width:18px;height:18px;border-radius:5px;background:var(--or);display:inline-block}
+.tabs{display:flex;gap:22px;border-bottom:1px solid var(--line);padding:0 16px}
+.tabs div{padding:12px 0;font-weight:600;color:var(--grey);font-size:14px}
+.tabs div.on{color:var(--ink);box-shadow:inset 0 -2px 0 var(--or)}
+.seg{display:flex;gap:12px;align-items:center;padding:12px 14px;border-top:1px solid var(--line)}
+.seg b{font-weight:600}
+.week{display:flex;gap:4px;margin:12px 0 6px}
+.week div{flex:1;text-align:center;font-size:11px;font-weight:600;padding:7px 0;border-radius:6px}
+.week .w{background:var(--blue-lt);color:var(--blue)}
+.week .f{background:var(--or);color:#fff}
+.nav{position:absolute;bottom:0;left:0;right:0;display:flex;background:#fff;border-top:1px solid var(--line);padding:8px 0 24px;z-index:20}
+.nav div{flex:1;text-align:center;font-size:11px;color:var(--grey);display:flex;flex-direction:column;align-items:center;gap:3px}
+.nav div.on{color:var(--or);font-weight:600}
+
+/* form */
+.fact{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.fact:last-child{border:0}
+.fact .c{width:22px;height:22px;border-radius:50%;background:var(--green-lt);color:var(--green);display:grid;place-items:center;flex:none}
+.fact.off .c{background:#eee;color:#aaa}
+.fact.off .ft{text-decoration:line-through;color:var(--grey)}
+.fact .ft{flex:1;font-weight:500}
+.rec{width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px}
+.rec.on{border-color:var(--or);background:var(--or-lt)}
+.radio{width:20px;height:20px;border-radius:50%;border:2px solid #ccc;flex:none;display:grid;place-items:center}
+.rec.on .radio{border-color:var(--or)}
+.rec.on .radio::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--or)}
+input[type=range]{width:100%;accent-color:var(--or);margin-top:8px}
+
+/* planning */
+.st{display:flex;gap:12px;align-items:center;padding:12px 0;opacity:.35;transition:.3s;font-weight:500}
+.st.on,.st.done{opacity:1}
+.st .d{width:22px;height:22px;border-radius:50%;border:2px solid #ddd;flex:none;display:grid;place-items:center}
+.st.on .d{border-color:var(--or);border-top-color:transparent;animation:spin .8s linear infinite}
+.st.done .d{background:var(--green);border-color:var(--green)}
+.sk{height:72px;border-radius:12px;background:linear-gradient(90deg,#f0f0f0,#fafafa,#f0f0f0);background-size:200% 100%;animation:sh 1.2s infinite;margin-top:10px}
+@keyframes sh{to{background-position:-200% 0}}
+
+/* plan */
+.opts{display:flex;gap:10px;overflow-x:auto;padding:2px 16px 4px;margin:0 -16px;scrollbar-width:none}
+.opts::-webkit-scrollbar{display:none}
+.opt{flex:none;width:150px;border:1px solid var(--line);border-radius:12px;padding:12px}
+.opt.on{border:2px solid var(--or);padding:11px}
+.opt .n{font-weight:700;font-size:15px}
+.opt .p{font-weight:700;margin-top:6px}
+.best{font-size:10.5px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.03em}
+.why1{display:flex;gap:8px;margin-top:12px;font-size:13px;color:var(--grey2)}
+.info{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;background:#F4F1FF;color:#3F2BA0;font-size:13px;margin-top:12px}
+.warn{padding:12px;border-radius:10px;background:var(--yel-lt);color:#6B4300;font-size:13px;margin-top:12px}
+.dayh{display:flex;justify-content:space-between;align-items:baseline;padding:16px 16px 8px}
+.dayh b{font-size:15px}
+.it{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid #f2f2f2;background:#fff;transition:background .6s}
+.it.hl{background:#FFF8E6}
+.it .icb{width:40px;height:40px;border-radius:10px;background:var(--bg);display:grid;place-items:center;flex:none;color:var(--grey2)}
+.it.flexi .icb{background:#F1EDFF;color:#5B3FD0}
+.it .m{flex:1;min-width:0}
+.it .tt{font-weight:600}
+.it .mm{font-size:12.5px;color:var(--grey);margin-top:1px}
+.it .ac{display:flex;gap:14px;margin-top:6px}
+.it .ac button{color:var(--blue);font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:3px}
+.it .ac button.lk{color:var(--ink)}
+.it .pr{text-align:right;font-weight:700;white-space:nowrap}
+.it .pr .tag{margin-top:4px}
+.work{display:flex;gap:12px;align-items:center;margin:0 16px;padding:12px;border-radius:12px;background:var(--blue-lt)}
+.qa{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:0 16px}
+.qa::-webkit-scrollbar{display:none}
+.qa .chip{padding:6px 12px;font-size:12.5px}
+
+/* sheets */
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:40;opacity:0;pointer-events:none;transition:.25s}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:20px 20px 0 0;z-index:41;transform:translateY(105%);transition:transform .3s cubic-bezier(.2,.8,.2,1);max-height:85%;overflow:auto;padding:8px 16px 28px}
+.sheet.on{transform:none}
+.grab{width:36px;height:4px;border-radius:2px;background:#ddd;margin:0 auto 14px}
+.tick{display:flex;gap:10px;padding:7px 0;font-size:14px}
+.tick svg{color:var(--green)}
+.alt{width:100%;display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:10px;margin-top:8px}
+.alt.on{border-color:var(--or);background:var(--or-lt)}
+.up{color:var(--yel);font-weight:700;font-size:12.5px}.dn{color:var(--green);font-weight:700;font-size:12.5px}
+.box2{display:flex;gap:8px;margin-top:12px}
+.box2>div{flex:1;border-radius:10px;padding:12px}
+
+/* toast */
+.toast{position:absolute;left:12px;right:12px;top:52px;z-index:70;background:#1A1A1A;color:#fff;border-radius:10px;padding:12px 14px;font-size:13px;display:flex;gap:10px;align-items:center;transform:translateY(-200%);opacity:0;visibility:hidden;transition:transform .3s,opacity .2s,visibility .3s}
+.toast.on{transform:none;opacity:1;visibility:visible}
+.toast.w{background:#fff;color:var(--ink);box-shadow:0 8px 30px rgba(0,0,0,.18)}
+
+/* booking */
+.hold{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.hold .s{width:22px;height:22px;border-radius:50%;border:2px solid #ddd;flex:none;display:grid;place-items:center}
+.hold.ing .s{border-color:var(--or);border-top-color:transparent;animation:spin .8s linear infinite}
+.hold.ok .s{background:var(--green);border-color:var(--green)}
+.hold.pa .s{border-color:var(--yel);background:var(--yel-lt)}
+.hold.fl .s{background:var(--red);border-color:var(--red)}
+.hold .n{flex:1;font-weight:500}
+.hold .n small{display:block;color:var(--grey);font-weight:400;font-size:12px}
+.chg{display:grid;grid-template-columns:1fr 16px 1fr;gap:8px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);font-size:13px}
+.chg .a{color:var(--grey);text-decoration:line-through}
+.chg .b{font-weight:600}
+.chg .l{grid-column:1/-1;font-size:11px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.04em}
+
+/* check-in */
+.notif{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;gap:10px;align-items:center;box-shadow:0 4px 14px rgba(0,0,0,.06)}
+.appic{width:36px;height:36px;border-radius:9px;background:var(--or);display:grid;place-items:center;flex:none;color:#fff}
+.mood{width:100%;display:flex;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px}
+.mood.on{border-color:var(--or);background:var(--or-lt)}
+.mood .mi{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;flex:none}
+.mood .mt{font-weight:700}
+.mood .md{font-size:12.5px;color:var(--grey)}
+.sugg{font-size:10.5px;font-weight:700;color:var(--green);text-transform:uppercase}
+.inv{border-radius:12px;overflow:hidden;border:1px solid var(--line);margin-top:14px}
+.inv .ih{background:var(--or);color:#fff;padding:14px}
+.inv .ib{padding:12px 14px;font-size:13px}
+.empty{text-align:center;padding:50px 24px}
+.circle{width:96px;height:96px;border-radius:50%;background:var(--or-lt);display:grid;place-items:center;margin:0 auto 16px;color:var(--or)}
+.err{background:var(--red-lt);color:#7a1d16;border-radius:10px;padding:14px;margin-top:14px;font-size:13px}
+
+/* stretch the trip */
+.wk{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;position:relative;touch-action:none;user-select:none;margin-top:12px;padding-bottom:22px}
+.dc{height:84px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 0 7px;font-size:11px;font-weight:600;transition:background .2s,color .2s}
+.dc .dnum{font-size:16px;font-weight:700}
+.dc.w{background:var(--blue-lt);color:var(--blue)}
+.dc.h{background:var(--or);color:#fff}
+.dc.n{background:#fff;border:1.5px dashed #D5D5D5;color:#B5B5B5}
+.handle{position:absolute;top:90px;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:#fff;border:3px solid var(--or);box-shadow:0 3px 10px rgba(0,0,0,.25);display:grid;place-items:center;color:var(--or);cursor:grab;transition:left .18s;z-index:3}
+.handle.drag{cursor:grabbing;transform:scale(1.15)}
+.hint{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--grey);margin-top:10px}
+.hint .pulse{width:8px;height:8px;border-radius:50%;background:var(--or);animation:pl 1.4s infinite}
+@keyframes pl{0%{box-shadow:0 0 0 0 rgba(255,79,23,.5)}100%{box-shadow:0 0 0 10px rgba(255,79,23,0)}}
+.slot{display:flex;gap:12px;align-items:center;padding:12px;border:1.5px solid var(--line);border-radius:12px;margin-top:8px;background:#fff;transition:.15s}
+.slot.drop{border-color:var(--or);border-style:dashed;background:var(--or-lt)}
+.slot.over{border-color:var(--or);border-style:solid;background:var(--or-lt);transform:scale(1.02)}
+.slot.fixed{background:var(--bg);border-color:transparent}
+.slot.pop{animation:pop .45s ease}
+@keyframes pop{0%{transform:scale(.96)}60%{transform:scale(1.03)}100%{transform:none}}
+.slot .dl{width:44px;flex:none;text-align:center;font-size:11px;font-weight:700;color:var(--grey);line-height:1.2}
+.slot .dl b{display:block;font-size:15px;color:var(--ink)}
+.stk{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px}
+.tray{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:2px 16px 10px}
+.tray::-webkit-scrollbar{display:none}
+.sticker{flex:none;display:flex;align-items:center;gap:5px;padding:8px 10px;border-radius:24px;font-weight:700;font-size:12.5px;touch-action:none;cursor:grab;user-select:none;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.sticker.held{outline:2px solid var(--ink);outline-offset:2px}
+.ghost{position:absolute;z-index:90;pointer-events:none;transform:translate(-50%,-60%) rotate(-4deg) scale(1.08);box-shadow:0 10px 24px rgba(0,0,0,.25)}
+
+/* swipe the vibe */
+.deck{position:relative;height:340px;margin-top:14px}
+.vc{position:absolute;inset:0;border-radius:18px;padding:20px;display:flex;flex-direction:column;justify-content:space-between;color:#fff;touch-action:none;user-select:none;box-shadow:0 10px 30px rgba(0,0,0,.15);transition:transform .3s,opacity .3s}
+.vc.back{transform:scale(.94) translateY(14px);opacity:.7}
+.vc .when{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.9}
+.vc .big{width:76px;height:76px;border-radius:22px;background:rgba(255,255,255,.22);display:grid;place-items:center}
+.vc .vt{font-size:24px;font-weight:800;line-height:1.15;letter-spacing:-.4px}
+.vc .vp{font-size:14px;font-weight:600;opacity:.95;margin-top:6px}
+.stamp{position:absolute;top:22px;padding:4px 12px;border:3px solid #fff;border-radius:8px;font-weight:900;font-size:22px;letter-spacing:.05em;opacity:0}
+.stamp.y{right:20px;transform:rotate(12deg)}.stamp.n{left:20px;transform:rotate(-12deg)}
+.sbtn{display:flex;justify-content:center;gap:28px;margin-top:18px}
+.sbtn button{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;box-shadow:0 4px 14px rgba(0,0,0,.12);background:#fff}
+.dots{display:flex;gap:5px;justify-content:center;margin-top:12px}
+.dots i{width:7px;height:7px;border-radius:50%;background:#ddd}.dots i.on{background:var(--or)}
+.res{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+
+/* presentation frame */
+.credit{position:fixed;top:16px;left:20px;z-index:200;font-size:12px;line-height:1.45;color:#666;border-left:3px solid var(--or);padding-left:10px}
+.credit b{display:block;font-size:14px;color:#1A1A1A}
+@media (max-width:1300px){.credit{position:static;align-self:flex-start}}
+@media (max-width:860px){.credit{display:none}}
+.wrap{min-height:100%;display:flex;flex-direction:column;align-items:center;padding:18px 20px 10px;gap:16px}
+.toolbar{display:flex;flex-direction:column;gap:8px;align-items:center;max-width:1100px}
+.tb{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+.tbl{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#888;width:84px;text-align:right}
+#edges button{border-color:#F3C9B9;color:#B23A10}
+#edges button.on{background:var(--or);border-color:var(--or);color:#fff}
+.stage{position:relative;display:flex;gap:64px;align-items:flex-start;justify-content:center;padding:0}
+.col{width:250px;height:844px;position:relative;flex:none}
+#lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:100}
+.ann{position:absolute;left:0;right:0;border:1.5px dashed #FF8A5E;border-radius:10px;padding:8px 10px;background:rgba(255,255,255,.85);font-size:12px;line-height:1.35;color:#444;transition:top .25s,opacity .25s}
+.ann b{display:flex;gap:6px;align-items:center;font-size:12.5px;color:#1A1A1A;margin-bottom:2px}
+.ann b i{font-style:normal;width:18px;height:18px;border-radius:50%;background:var(--or);color:#fff;font-size:10.5px;display:grid;place-items:center;flex:none}
+.ann.dim{opacity:.35}
+.foot{font-size:11px;color:#999}
+@media (max-width:1100px){.col,#lines{display:none}.stage{gap:0}}
+@media (max-width:860px){.wrap{padding:0}.toolbar,.foot{display:none}}
+
+.stp{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;background:#fff}
+.opt.off{opacity:.45}
+.ask{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:24px;padding:4px 4px 4px 12px}
+.ask input{flex:1;border:0;outline:0;font:inherit;font-size:13.5px;padding:7px 0;min-width:0}
+.ask button{width:32px;height:32px;border-radius:50%;background:var(--or);color:#fff;display:grid;place-items:center;flex:none}
+.note{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;background:var(--bg);border-radius:20px;padding:3px 6px 3px 10px}
+.note button{width:16px;height:16px;display:grid;place-items:center;color:#888}
+.rv{display:flex;gap:10px;align-items:flex-start;margin-top:12px;font-size:13.5px}
+.rv .ico{margin-top:1px}
+.feel3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.fcard{border:1.5px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:4px;text-align:left;background:#fff;transition:.15s}
+.fcard.on{border-color:var(--or);background:var(--or-lt);box-shadow:0 0 0 1px var(--or)}
+.fcard .fi{width:34px;height:34px;border-radius:9px;display:grid;place-items:center}
+.fcard b{font-size:14px}.fcard span:last-child{font-size:11px;color:var(--grey);line-height:1.3}
+.road{width:100%;display:flex;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:12px;margin-top:8px;background:#fff}
+.road .icb{width:40px;height:40px;border-radius:10px;background:var(--blue-lt);color:var(--blue);display:grid;place-items:center}
+.pend{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;background:var(--yel-lt);color:#6B4300;font-size:13px;margin-top:12px}
+.cbx{width:20px;height:20px;border-radius:5px;border:2px solid #ccc;display:grid;place-items:center;flex:none;color:#fff}
+.cbx.on{background:var(--or);border-color:var(--or)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="credit"><b>Preksha Anand</b>New Media Design 2025, NID<br>Razorpay Design Assignment</div>
+ <div class="toolbar">
+  <div class="tb"><span class="tbl">Main flow</span><div class="jump" id="jump"></div></div>
+  <div class="tb"><span class="tbl">Edge cases</span><div class="jump" id="edges"></div></div>
+ </div>
+ <div class="stage" id="stage">
+  <div class="col" id="colL"></div>
+  <div class="phone">
+  <div class="island"></div>
+  <div class="status"><span>9:41</span><span style="display:flex;gap:6px;align-items:center"><svg width="18" height="11" viewBox="0 0 18 11"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="6" rx="1"/><rect x="10" y="2.5" width="3" height="8.5" rx="1"/><rect x="15" y="0" width="3" height="11" rx="1"/></svg><svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3" fill="none" stroke="#000" opacity=".4"/><rect x="2" y="2" width="16" height="8" rx="2"/></svg></span></div>
+  <div class="screen" id="screen"></div>
+  <div id="barSlot"></div>
+  <div class="scrim" id="scrim"></div>
+  <div class="sheet" id="sheet"></div>
+  <div class="toast" id="toast"></div>
+ </div>
+  <div class="col" id="colR"></div>
+  <svg id="lines"></svg>
+ </div>
+ <p class="foot">Student concept, not affiliated with Cleartrip. Prices and places are simulated.</p>
+</div>
+
+<script>
+/* ================= icons ================= */
+const P={plane:'<path d="M2 16l20-6-20-6 3 6-3 6zM5 10h9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+bed:'<path d="M3 18V7M3 13h18v5M21 13a3 3 0 00-3-3h-7v3M7 11.5a1.5 1.5 0 100-.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+car:'<path d="M5 16h14M6 16v2M18 16v2M4 16v-4l2-5h12l2 5v4M4 12h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+leaf:'<path d="M5 19c0-8 6-14 15-14 0 9-6 15-14 15M5 19l7-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+food:'<path d="M7 3v8M5 3v4a2 2 0 004 0V3M7 11v10M16 3c-2 1-3 4-3 7h3v11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+brief:'<path d="M3 8h18v11H3zM8 8V5h8v3M3 13h18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+spark:'<path d="M12 2l2.2 6.3L20 10l-5.8 1.7L12 18l-2.2-6.3L4 10l5.8-1.7z" fill="currentColor"/>',
+lock:'<path d="M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 017 0v3" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>',
+swap:'<path d="M4 8h14l-3-3M20 16H6l3 3" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>',
+info:'<path d="M12 11v6M12 7.5v.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>',
+check:'<path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>',
+cal:'<path d="M4 6h16v14H4zM4 10h16M8 3v5M16 3v5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+left:'<path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>',
+right:'<path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>',
+arrow:'<path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>',
+send:'<path d="M12 19V5M6 11l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>',
+bag:'<path d="M6 8h12l1 12H5zM9 8V6a3 3 0 016 0v2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+x:'<path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>',
+home:'<path d="M4 11l8-7 8 7v9H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+user:'<circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6" fill="none" stroke="currentColor" stroke-width="1.8"/>',
+tag:'<path d="M3 12V4h8l10 10-8 8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="7.5" cy="8.5" r="1.3" fill="currentColor"/>',
+people:'<circle cx="9" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 20c.8-3.5 3-5 6-5s5.2 1.5 6 5M15 15c3 0 5 1.3 6 4" fill="none" stroke="currentColor" stroke-width="1.8"/>',
+map:'<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z M9 4v14M15 6v14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+gift:'<path d="M4 10h16v10H4zM3 7h18v3H3zM12 7v13M12 7c-2-4-6-3-5 0M12 7c2-4 6-3 5 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+moon:'<path d="M20 14A8 8 0 1110 4a6.5 6.5 0 0010 10z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+shield:'<path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+plus:'<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>',
+minus:'<path d="M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>',
+};
+const ic=(n,s=20,st='')=>`<svg class="ico" style="width:${s}px;height:${s}px;${st}" viewBox="0 0 24 24">${P[n]}</svg>`;
+const inr=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const $=s=>document.querySelector(s);
+const scr=$('#screen');
+const DOW=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const dname=i=>`${DOW[i]}, ${23+i} Nov`;
+
+/* ================= data ================= */
+const CO_TOTAL=29560;
+const RETCOST={3:3699,4:3999,5:4399,6:4849};
+const RET={id:'ret',kind:'plane',title:'Flight home · BLR → BOM',cost:4849,
+  why:['Changing your company ticket costs you less than a new ticket.','Your company still pays the same. No new approval needed.','Evening flight, so you’re fresh for Monday 9 AM.'],
+  also:[['Cancel and book new','₹1,051 more for you'],['Earlier flight','Cuts your last day short']],
+  alts:[{title:'Earlier flight, 5:15 PM',meta:'Home earlier',cost:-600},{title:'Late flight, 10:55 PM',meta:'Lands after midnight',cost:-850}]};
+const PLANS={
+ coorg:{name:'Coorg',sub:'Coffee estate',travel:'5 hr drive',min:5,best:true,
+  why:'Quiet hills after a busy week. The long drive is Thursday morning, not Wednesday night.',
+  days:[
+   {dow:2,n:'After work',items:[
+    {id:'w1',t:'5:30 PM',kind:'bag',title:'Bags kept at your hotel',meta:'Till 6:30 PM · free',cost:0,free:true},
+    {id:'w2',t:'6:15 PM',kind:'bed',title:'Nook House, Indiranagar',meta:'1 night · 4.6 ★',cost:3900,
+      why:['No 5-hour drive right after work.','12 min from your office.','Quiet rooms, breakfast from 7 AM.'],
+      also:[['Stay at company hotel','₹8,200 a night for you'],['Drive to Coorg tonight','Reach at 2 AM']],
+      alts:[{title:'Stay at Halcyon Suites',meta:'Don’t change hotels',cost:8200},{title:'Pod hotel, Indiranagar',meta:'4.2 ★ · basic',cost:1900}]},
+    {id:'w3'}]},
+   {dow:3,n:'Into the hills',items:[
+    {id:'t1',t:'8:00 AM',kind:'car',title:'Cab to Coorg',meta:'Sedan · 5 hrs',cost:4800,
+      alts:[{title:'AC bus (KSRTC)',meta:'6 hrs',cost:950},{title:'SUV with driver, all days',meta:'All transfers covered',cost:13500}]},
+    {id:'t2',t:'2:00 PM',kind:'bed',title:'Misty Ridge Estate',meta:'meals included · 4.7 ★',nightly:4900,
+      why:['Unpack once. No hotel-hopping.','Meals included, so nothing to plan.','Quiet: no weddings this weekend.'],
+      also:[['Resort in Madikeri','₹11,000 a night, crowded'],['Treehouse stay','No mobile network']],
+      alts:[{title:'Fernhill Estate',meta:'breakfast only · 4.6 ★',nightly:4000},{title:'Riverside Cottage, Dubare',meta:'4.5 ★',nightly:3500},{title:'Luxury resort, Madikeri',meta:'pool, spa · 4.8 ★',nightly:11000},{title:'Wellness resort, Coorg',meta:'spa, one great stay · 4.8 ★',nightly:7400},{title:'Coffee estate homestay',meta:'family-run · meals with hosts · 4.7 ★',nightly:2200},{title:'Private room in a local home',meta:'Madikeri town · 4.5 ★',nightly:1600}]},
+    {id:'t3',t:'4:30 PM',kind:'leaf',title:'Coffee estate walk',meta:'With the planter · included',cost:0,free:true}]},
+   {dow:4,n:'',items:[{id:'f1'}]},
+   {dow:5,n:'',items:[{id:'s1'}]},
+   {dow:6,n:'',items:[]},
+  ],
+  ret:[{id:'u1',t:'12:00 PM',kind:'car',title:'Cab to Bengaluru airport',meta:'5.5 hrs · 2 hr buffer',cost:5200,
+      alts:[{title:'Cab to Mysuru + short flight',meta:'2.5 hrs less on the road',cost:7100},{title:'AC sleeper bus to Bengaluru',meta:'6 hrs · drops at the airport',cost:900}]}]},
+ pondy:{name:'Pondicherry',sub:'Beach & cafés',travel:'6 hr drive',min:5,
+  why:'Great food and sea walks. A longer drive than Coorg.',
+  days:[
+   {dow:2,n:'After work',items:[{id:'pw1',t:'6:15 PM',kind:'bed',title:'Nook House, Indiranagar',meta:'1 night · 4.6 ★',cost:3900}]},
+   {dow:3,n:'To the coast',items:[{id:'pt1',t:'7:30 AM',kind:'car',title:'Cab to Pondicherry',meta:'6 hrs',cost:6200},{id:'pt2',t:'2:30 PM',kind:'bed',title:'Villa Rose, White Town',meta:'heritage stay · 4.6 ★',nightly:5200}]},
+   {dow:4,n:'',items:[{id:'pf1',t:'9:00 AM',kind:'leaf',title:'Auroville by bicycle',meta:'Half day',cost:900}]},
+   {dow:5,n:'',items:[{id:'ps1',t:'5:00 PM',kind:'food',title:'French Quarter food walk',meta:'3 hrs · guided',cost:1800}]},
+   {dow:6,n:'',items:[]},
+  ],
+  ret:[{id:'pu1',t:'11:30 AM',kind:'car',title:'Cab to Bengaluru airport',meta:'6.5 hrs',cost:6400}]},
+ mysuru:{name:'Mysuru',sub:'Palaces & food',travel:'3 hr drive',min:4,
+  why:'Close by road, so no long drive after work. Palaces, markets and great food.',
+  days:[
+   {dow:2,n:'After work',items:[{id:'mw1',t:'6:15 PM',kind:'bed',title:'Nook House, Indiranagar',meta:'1 night · 4.6 ★',cost:3900}]},
+   {dow:3,n:'Road trip',items:[{id:'mt1',t:'9:00 AM',kind:'car',title:'Cab to Mysuru',meta:'3 hrs · stop at Srirangapatna',cost:3200},{id:'mt2',t:'1:00 PM',kind:'bed',title:'Heritage Haveli, Mysuru',meta:'heritage stay · 4.5 ★',nightly:3800}]},
+   {dow:4,n:'',items:[{id:'mf1',t:'10:00 AM',kind:'leaf',title:'Palace + Devaraja market',meta:'Half day · with guide',cost:900}]},
+   {dow:5,n:'',items:[{id:'ms1',t:'6:00 AM',kind:'leaf',title:'Chamundi Hills sunrise',meta:'Cab + walk',cost:700}]},
+   {dow:6,n:'',items:[]},
+  ],
+  ret:[{id:'mu1',t:'1:00 PM',kind:'car',title:'Cab to Bengaluru airport',meta:'4 hrs',cost:4200}]},
+ blr:{name:'Bengaluru',sub:'Stay in the city',travel:'No long drives',min:3,
+  why:'Cheapest and easiest, with no long drives. Feels less like a getaway.',
+  days:[
+   {dow:2,n:'After work',items:[{id:'bw1',t:'6:15 PM',kind:'bed',title:'Nook House, Indiranagar',meta:'boutique · 4.6 ★',nightly:3600,city:true}]},
+   {dow:3,n:'',items:[{id:'bt1',t:'5:00 AM',kind:'leaf',title:'Nandi Hills sunrise',meta:'Cab + entry',cost:2200}]},
+   {dow:4,n:'',items:[{id:'bf1',t:'11:00 AM',kind:'food',title:'Old Bengaluru food trail',meta:'3 hrs',cost:1400}]},
+   {dow:5,n:'',items:[{id:'bs1',t:'7:00 PM',kind:'leaf',title:'Live music night',meta:'Tickets held',cost:1200}]},
+   {dow:6,n:'',items:[]},
+  ],
+  ret:[{id:'bu1',t:'5:00 PM',kind:'car',title:'Cab to airport',meta:'1 hr 15 min',cost:1100}]},
+};
+const MOODS={
+ explore:{name:'Explore',who:'Like Ananya',ex:'Nature, local food, a relaxed pace',icon:'map',c:'#3366CC',bg:'#EEF3FC',place:'coorg',
+  gen:{w3:'Local food walk',f1:'One big day out',s1:'A slow local experience'},
+  w3:{t:'7:30 PM',kind:'food',title:'Street food walk',meta:'3 stops · 90 min',cost:500},
+  f1:{t:'6:00 AM',kind:'leaf',title:'Tadiandamol trek',meta:'Full day · with guide',cost:1800},
+  s1:{t:'10:00 AM',kind:'leaf',title:'Coffee-picking with a local family',meta:'Half day · then free',cost:1200}},
+ team:{name:'Socialise',who:'Like Rohan',ex:'Lively places, good food, people',icon:'people',c:'#E2400D',bg:'#FFF3EE',place:'pondy',
+  gen:{w3:'Dinner with friends or colleagues',f1:'An easy group outing',s1:'Free time for spontaneous plans'},
+  w3:{t:'8:00 PM',kind:'food',title:'Group dinner, Indiranagar',meta:'Table for 4 · each pays own',cost:1800,team:true},
+  f1:{t:'6:30 AM',kind:'leaf',title:'Sunrise jeep ride',meta:'Shared jeep',cost:1400},
+  s1:{t:'',kind:'leaf',title:'Free day for spontaneous plans',meta:'Nothing booked on purpose',cost:0,free:true}},
+ unwind:{name:'Recharge',who:'Like Karan',ex:'One great stay, spa, no logistics',icon:'moon',c:'#11A670',bg:'#E8F7F1',place:'coorg',
+  gen:{w3:'Quiet dinner, early night',f1:'Sleep in, easy evening',s1:'Spa day'},
+  w3:{t:'8:00 PM',kind:'food',title:'Dinner in your room',meta:'Early night',cost:700},
+  f1:{t:'5:30 PM',kind:'leaf',title:'Sleep in, then sunset point',meta:'No alarms',cost:0,free:true},
+  s1:{t:'11:00 AM',kind:'leaf',title:'Spa day at the resort',meta:'90 min ritual · pool',cost:3200}},
+};
+const FLEX=['w3','f1','s1'];
+const SLIP={w2:{title:'Halcyon Suites · 1 more night',meta:'Work night now · company pays',cost:5600,co:true},t1:{t:'2:00 PM',meta:'After your 1 PM meeting · same price'},t3:{t:'',title:'Coffee estate walk → Saturday',meta:'Same host'}};
+const EN={
+ drained:{label:'Drained',line:'Too tired for a 5-hour drive tonight',icon:'moon',c:'#11A670',bg:'#E8F7F1',
+   w3:{t:'8:00 PM',kind:'food',title:'Room service, lights out by 10',meta:'No plans tonight',cost:700},
+   t1:{t:'11:00 AM',meta:'After a slow breakfast · same price'},
+   t3:{t:'',title:'Estate walk, whenever you like',meta:'Optional · no fixed time'}},
+ okay:{label:'Okay',line:'Keep the plan, just fine-tune the days',icon:'check',c:'#3366CC',bg:'#EEF3FC'},
+ buzzing:{label:'Buzzing',line:'Ready to leave for Coorg right now',icon:'spark',c:'#E2400D',bg:'#FFF3EE',
+   w2:{title:'Nook House cancelled',meta:'Free cancellation',cost:0,free:true},
+   t1:{t:'6:00 PM',title:'Cab to Coorg tonight',meta:'Leave right after work · 5 hrs'},
+   w3:{t:'11:00 PM',kind:'food',title:'Late dinner on arrival',meta:'Kept warm by your hosts',cost:600}},
+ late:{label:'Meeting running late',line:'Calendar shows the wrap-up till 7 PM',icon:'cal',c:'#B26B00',bg:'#FFF6E0',
+   w1:{meta:'Hotel holds your bags till 9 PM · free'},
+   w2:{meta:'1 night · late check-in at 9:30 PM'},
+   w3:{t:'9:45 PM',kind:'food',title:'Late dinner near your hotel',meta:'Kitchen open till 11 PM',cost:900}},
+};
+const VCARDS=[{slot:'w3',m:'unwind',when:'Tonight'},{slot:'w3',m:'team',when:'Tonight'},{slot:'f1',m:'unwind',when:'Friday'},{slot:'f1',m:'explore',when:'Friday'},{slot:'s1',m:'unwind',when:'Saturday'},{slot:'s1',m:'explore',when:'Saturday'}];
+const GRAD={unwind:'linear-gradient(150deg,#11A670,#0B7A53)',team:'linear-gradient(150deg,#FF6A3D,#E2400D)',explore:'linear-gradient(150deg,#4C7FE0,#2A55B0)',treat:'linear-gradient(150deg,#D59A21,#A06A00)'};
+
+/* ================= state ================= */
+const SIM0=()=>({overrun:false,soldout:false,offline:false,empty:false});
+const S0=()=>({en:null,flightPending:false,screen:'trips',plan:'coorg',budget:50000,end:6,feel:null,who:'me',dm:{},alt:{},locks:new Set(['t2']),added:[],notes:[],slip:false,booked:false,checked:false,invited:false,priv:true,soldDone:false,hl:new Set(),edge:null,sim:SIM0()});
+let S=S0();
+
+/* ================= model ================= */
+const estateNights=()=>Math.max(S.end-3,1);
+function rawById(id){if(id==='ret')return RET;for(const p of Object.values(PLANS)){for(const d of p.days)for(const it of d.items)if(it.id===id)return it;for(const it of p.ret)if(it.id===id)return it;}return S.added.find(a=>a.id===id);}
+function resolve(it){
+  let o={...it};
+  if(FLEX.includes(o.id)){const mk=S.dm[o.id]||S.feel||'unwind';o={...o,...MOODS[mk][o.id],flex:true,picked:!!S.dm[o.id]};}
+  const ai=S.alt[o.id];
+  if(ai!=null&&it.alts){const a=it.alts[ai];o={...o,title:a.title,meta:a.meta,cost:a.cost,nightly:a.nightly};}
+  if(o.id==='ret'){o.cost=RETCOST[S.end]+(ai!=null?it.alts[ai].cost:0);o.t=ai===0?'5:15 PM':ai===1?'10:55 PM':'8:40 PM';o.meta=`${DOW[S.end]} · moved from Wed`;}
+  if(o.nightly){const n=o.city?S.end-2:estateNights();o.cost=o.nightly*n;o.meta=`${n} night${n>1?'s':''} · ${o.meta}`;}
+  if(S.slip&&SLIP[o.id])o={...o,...SLIP[o.id]};
+  if(S.en&&EN[S.en][o.id]){o={...o,...EN[S.en][o.id]};o.adapted=true;}
+  if(S.en==='buzzing'&&o.id==='t2'){o.meta=o.meta.replace(/^\d nights?/,m=>(parseInt(m)+1)+' nights')+' · check in tonight';o.cost+=o.nightly||0;o.adapted=true;}
+  if(o.team&&S.invited)o.meta='Riya is coming · each pays own';
+  return o;
+}
+function days(pid=S.plan){
+  const p=PLANS[pid];
+  const ds=p.days.filter(d=>d.dow<=S.end).map(d=>({d:dname(d.dow),n:d.n,dow:d.dow,items:(d.dow===S.end&&d.dow>2?d.items.filter(i=>!FLEX.includes(i.id)):d.items).map(resolve)}));
+  if(S.en==='buzzing'&&pid==='coorg'){const thu=ds.find(d=>d.dow===3),wed=ds.find(d=>d.dow===2);const i=thu.items.findIndex(x=>x.id==='t1');if(i>-1){const t=thu.items.splice(i,1)[0];wed.items.splice(2,0,t);}}
+  const last=ds[ds.length-1];last.n='Travel home';last.items=last.items.concat(p.ret.map(resolve),[resolve(RET)]);
+  return ds;
+}
+function items(pid=S.plan){let a=[];days(pid).forEach(d=>a=a.concat(d.items));if(S.who==='partner')a.push({id:'pp',t:'7:40 PM',kind:'plane',title:'Partner’s flight to Bengaluru',meta:'From Mumbai, Wed',cost:5400});return a.concat(S.added);}
+const meTotal=(pid=S.plan)=>items(pid).filter(i=>!i.co).reduce((s,i)=>s+(i.cost||0),0);
+const coTotal=()=>CO_TOTAL+(S.slip?5600:0);
+const fits=pid=>S.end>=PLANS[pid].min;
+const bestPlace=()=>{const want=S.feel?MOODS[S.feel].place:'coorg';return fits(want)?want:'blr';};
+
+/* ================= frame ================= */
+const SCREENS=[['trips','AI finds free days'],['context','Stretch your trip'],['plan','Review your plan'],['review','Confirm & book'],['done','Booked'],['checkin','Wednesday check-in']];
+const EDGES=[['empty','No trips yet'],['offline','AI can’t reach flights'],['budget','Over budget'],['overrun','Meeting moved mid-booking'],['soldout','Hotel sold out mid-booking']];
+let timers=[];const clearT=()=>{timers.forEach(clearTimeout);timers=[];};
+function go(s){S.screen=s;render();scr.scrollTop=0;}
+function render(){
+  closeSheet();scr.className='screen'+(['plan','done','review'].includes(S.screen)?' grey':'');
+  ({trips,context,planning,plan,review,book,slip,done,checkin})[S.screen]();
+  $('#jump').innerHTML=SCREENS.map(([x,l],i)=>`<button class="${x===S.screen&&!S.edge?'on':''}" onclick="jumpTo('${x}')">${i+1}. ${l}</button>`).join('');
+  $('#edges').innerHTML=EDGES.map(([k,l])=>`<button class="${S.edge===k?'on':''}" onclick="edge('${k}')">${l}</button>`).join('');
+  buildAnn();
+}
+function jumpTo(x){clearT();S=Object.assign(S0(),{});if(x==='checkin'){S.booked=true;}go(x);}
+function edge(k){
+  clearT();const was=S.edge;S=S0();
+  if(was===k){go('trips');return;}
+  S.edge=k;
+  if(k==='empty'){S.sim.empty=true;go('trips');}
+  if(k==='offline'){S.sim.offline=true;go('planning');}
+  if(k==='budget'){S.budget=25000;go('plan');}
+  if(k==='overrun'){S.sim.overrun=true;go('book');}
+  if(k==='soldout'){S.sim.soldout=true;go('book');}
+}
+const hdr=(t,s,back)=>`<div class="hdr"><button onclick="clearT();go('${back}')">${ic('left',22)}</button><div style="flex:1"><div class="t">${t}</div>${s?`<div class="s">${s}</div>`:''}</div></div>`;
+const bar=h=>{$('#barSlot').innerHTML=h?`<div class="bar">${h}</div>`:'';};
+const dates=()=>`26 – ${23+S.end} Nov`;
+
+/* ================= 1 trips ================= */
+function trips(){
+  $('#barSlot').innerHTML=`<div class="nav"><div>${ic('home',22)}Home</div><div class="on">${ic('brief',22)}Trips</div><div>${ic('tag',22)}Offers</div><div>${ic('user',22)}Account</div></div>`;
+  const top=`<div style="padding:8px 16px 4px" class="row sp"><div class="logo"><i></i>cleartrip</div></div><div style="padding:4px 16px 0;font-size:22px;font-weight:700">My trips</div><div class="tabs"><div class="on">Upcoming</div><div>Completed</div><div>Cancelled</div></div>`;
+  if(S.sim.empty){scr.innerHTML=top+`<div class="empty fade"><div class="circle">${ic('brief',40)}</div><div class="h">No upcoming trips</div><p class="muted" style="margin-top:6px">Book a work trip, or forward one from your travel desk. We’ll check if you can add a holiday.</p><button class="btn" style="margin-top:20px">Forward a booking</button><button class="btn out" style="margin-top:10px">Search flights</button></div>`;return;}
+  scr.innerHTML=top+`<div class="pad fade" style="padding-bottom:110px">
+   <div class="card" style="overflow:hidden">
+    <div style="padding:14px" class="row sp"><div><div class="muted" style="font-weight:600">23 – 25 Nov</div><div style="font-size:17px;font-weight:700;margin-top:2px">Mumbai → Bengaluru</div></div><span class="tag co">${ic('brief',12)} Work trip</span></div>
+    <div class="seg">${ic('plane')}<div><b>Flight · Mon 23 Nov</b><div class="muted">7:05 AM · IndiGo 6E 5313</div></div></div>
+    <div class="seg">${ic('bed')}<div><b>Halcyon Suites, MG Road</b><div class="muted">2 nights · paid by company</div></div></div>
+    <div class="seg">${ic('plane')}<div><b>Return · Wed 25 Nov</b><div class="muted">9:10 PM</div></div></div>
+   </div>
+   <div class="card fade" id="nudge" style="margin-top:12px;padding:14px;border-color:#FFD2C2;background:linear-gradient(180deg,#FFF6F2,#fff)">
+    <span class="ai">${ic('spark',12)} AI suggestion</span>
+    <div style="font-size:17px;font-weight:700;margin-top:8px">You’re free Thu to Sun</div>
+    <div class="muted">Your last meeting ends Wed, 5 PM.</div>
+    <div class="week">${DOW.map((d,i)=>`<div class="${i<3?'w':'f'}">${d}</div>`).join('')}</div>
+    <div class="row" style="margin-top:12px;gap:8px"><button class="btn sm" onclick="go('context')">Plan a holiday</button><button class="btn out sm" style="width:110px" onclick="toast('Okay. We won’t suggest this for work trips.')">Not now</button></div>
+   </div></div>`;
+}
+
+/* ================= 2 stretch ================= */
+const STK={explore:'Explore',team:'Socialise',unwind:'Recharge'};
+function slotsFor(){
+  const out=[{dow:2,id:'w3',lab:'Evening after work'}];
+  for(let d=3;d<=S.end;d++){
+    if(d===S.end) out.push({dow:d,fixed:'Fly home',sub:'Evening flight · back for Monday'});
+    else if(d===3) out.push({dow:d,fixed:'Get to your getaway',sub:'AI picks the place next'});
+    else out.push({dow:d,id:d===4?'f1':'s1',lab:'Full day'});
+  }
+  return out;
+}
+function context(){
+  S.held=null;
+  scr.innerHTML=hdr('Plan your holiday','Bengaluru · after your work trip','trips')+`<div class="fade" style="padding-bottom:170px">
+  <div class="sec"><div class="lbl" style="margin-bottom:2px">How do you want to feel when work ends?</div><div class="muted" style="margin-bottom:10px">This shapes the place, the stay and each day.</div><div class="feel3" id="feel"></div></div>
+  <div class="sec"><div class="row sp"><div class="lbl" style="margin:0">Stretch your trip</div><span class="ai">${ic('spark',12)} AI fills the days</span></div>
+   <div class="wk" id="wk"></div><div class="hint" id="hint"></div></div>
+  <div class="sec row sp" style="padding-top:12px;padding-bottom:12px"><div><div class="muted">Your budget</div><div class="row" style="gap:8px;margin-top:4px" id="bud"></div></div>
+   <div><div class="muted" style="text-align:right">Who’s coming</div><div class="chips" style="margin-top:4px" id="who"></div></div></div>
+  <div class="sec"><div class="lbl">Your days</div><div id="slots"></div></div></div>`;
+  drawFeel();drawWeek();drawSlots();drawBud();bindWeek();
+  bar(`<div class="muted" style="margin-bottom:8px">Fine-tune: drag a mood onto any day. We’ll ask again on Wed.</div>
+   <div class="tray">${Object.entries(STK).map(([k,l])=>`<div class="sticker" data-k="${k}" style="background:${MOODS[k].bg};color:${MOODS[k].c}">${ic(MOODS[k].icon,16)} ${l}</div>`).join('')}</div>
+   <button class="btn" id="seeplan" onclick="go('planning')"></button>`);
+  setBtn();bindStickers();
+}
+function setBtn(){const b=$('#seeplan');if(b)b.textContent=`See my plan · ${S.end-2} days`;}
+function drawBud(){
+  $('#bud').innerHTML=`<button class="stp" onclick="bud(-5000)">${ic('minus',16)}</button><b style="min-width:76px;text-align:center">${inr(S.budget)}</b><button class="stp" onclick="bud(5000)">${ic('plus',16)}</button>`;
+  $('#who').innerHTML=`<button class="chip ${S.who==='me'?'on':''}" style="padding:6px 10px" onclick="S.who='me';drawBud()">Just me</button><button class="chip ${S.who==='partner'?'on':''}" style="padding:6px 10px" onclick="S.who='partner';drawBud();toast('Partner flies in Wed evening')">+ Partner</button>`;
+}
+function bud(d){S.budget=Math.min(80000,Math.max(15000,S.budget+d));drawBud();}
+function drawWeek(){
+  const e=S.end;
+  $('#wk').innerHTML=DOW.map((d,i)=>`<div class="dc ${i<3?'w':i<=e?'h':'n'}" data-i="${i}"><span>${d}</span><span class="dnum">${23+i}</span><span>${i<3?ic('brief',14):i<=e?ic('leaf',14):'+'}</span></div>`).join('')+`<div class="handle" id="hd" style="left:${(e+0.5)/7*100}%">${ic('swap',14)}</div>`;
+  $('#hint').innerHTML=S._moved?`${ic('check',14,'color:var(--green)')} Holiday: Thu – ${DOW[e]} · ${e-2} days${e<5?' · city break (no long drives)':''}`:`<span class="pulse"></span>Drag the circle to choose your last day`;
+}
+function drawSlots(drop){
+  $('#slots').innerHTML=slotsFor().map(x=>{
+    const dl=`<div class="dl">${DOW[x.dow]}<b>${23+x.dow}</b></div>`;
+    if(x.fixed) return `<div class="slot fixed">${dl}<div style="flex:1"><div style="font-weight:600">${x.fixed}</div><div class="muted">${x.sub}</div></div>${ic('lock',16,'color:#aaa')}</div>`;
+    const k=S.dm[x.id],m=MOODS[k||'unwind'];
+    return `<div class="slot ${S.held?'drop':''} ${drop===x.id?'pop':''}" data-slot="${x.id}" onclick="tapSlot('${x.id}')">${dl}<div style="flex:1;min-width:0"><div class="muted" style="font-size:11.5px">${x.lab}</div><div style="font-weight:600">${m.gen[x.id]}</div>
+     <div style="margin-top:4px">${k?`<span class="stk" style="background:${m.bg};color:${m.c}">${ic(m.icon,11)} ${STK[k]}</span>`:`<span class="tag flex">${ic('moon',11)} AI pick · can change Wed</span>`}</div></div></div>`;
+  }).join('');
+}
+function setEnd(i){
+  i=Math.max(3,Math.min(6,i));if(i===S.end&&S._moved)return;
+  const was=S.end;S.end=i;S._moved=true;
+  if(!fits(S.plan)){S.plan='blr';if(was>=5)toast('Short trip: AI switched to a Bengaluru city break');}
+  else if(was<5&&i>=5&&S.plan==='blr'){S.plan=bestPlace();toast('Long enough to travel again: '+PLANS[S.plan].name);}
+  drawWeek();drawSlots();setBtn();
+}
+function bindWeek(){
+  const wk=$('#wk');let drag=false;
+  const idx=e=>{const r=wk.getBoundingClientRect();return Math.floor((e.clientX-r.left)/(r.width/7));};
+  wk.addEventListener('pointerdown',e=>{const i=idx(e);if(i<3){toast('Mon to Wed are work days');return;}drag=true;wk.setPointerCapture(e.pointerId);setEnd(i);});
+  wk.addEventListener('pointermove',e=>{if(drag)setEnd(idx(e));});
+  wk.addEventListener('pointerup',()=>{drag=false;});
+}
+function bindStickers(){
+  document.querySelectorAll('.sticker').forEach(el=>{
+    el.addEventListener('pointerdown',e=>{
+      e.preventDefault();const k=el.dataset.k,phE=document.querySelector('.phone'),ph=phE.getBoundingClientRect();
+      let moved=false,g=null,over=null;
+      const mv=ev=>{
+        if(!moved&&Math.hypot(ev.clientX-e.clientX,ev.clientY-e.clientY)>6){moved=true;g=el.cloneNode(true);g.classList.add('ghost');phE.appendChild(g);S.held=k;drawSlots();}
+        if(!moved)return;g.style.left=(ev.clientX-ph.left)+'px';g.style.top=(ev.clientY-ph.top)+'px';
+        g.style.display='none';const t=document.elementFromPoint(ev.clientX,ev.clientY);g.style.display='';
+        const sl=t&&t.closest('[data-slot]');document.querySelectorAll('.slot.over').forEach(x=>x.classList.remove('over'));if(sl){sl.classList.add('over');over=sl.dataset.slot;}else over=null;
+      };
+      const up=()=>{document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);if(g)g.remove();
+        if(!moved){S.held=S.held===k?null:k;document.querySelectorAll('.sticker').forEach(x=>x.classList.toggle('held',x.dataset.k===S.held));drawSlots();if(S.held)toast('Now tap a day to drop “'+STK[k]+'”');return;}
+        S.held=null;if(over)dropOn(over,k);else drawSlots();};
+      document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);
+    });
+  });
+}
+function tapSlot(id){if(!S.held)return;const k=S.held;S.held=null;document.querySelectorAll('.sticker').forEach(x=>x.classList.remove('held'));dropOn(id,k);}
+function dropOn(id,k){S.dm[id]=k;drawSlots(id);toast(`${{w3:'Wednesday',f1:'Friday',s1:'Saturday'}[id]}: ${MOODS[k].gen[id]}`);}
+
+/* ================= 3 planning ================= */
+function planning(){
+  clearT();bar('');
+  const st=['Reading your work trip','Checking how to move your flight home','Finding places that fit '+(S.end-2)+' days','Matching your budget of '+inr(S.budget),'Making 3 plans'];
+  scr.innerHTML=hdr('Planning…','Usually takes 5 seconds','context')+`<div class="pad fade"><span class="ai">${ic('spark',12)} AI is working</span><div style="margin-top:8px" id="sts">${st.map((s,i)=>`<div class="st" id="s${i}"><div class="d"></div>${s}</div>`).join('')}</div><div id="er"></div><div id="sks"><div class="sk"></div><div class="sk" style="opacity:.6"></div></div><button class="btn out" style="margin-top:16px" onclick="clearT();go('context')">Cancel</button></div>`;
+  st.forEach((_,i)=>timers.push(setTimeout(()=>{
+    if(i>0){const p=$('#s'+(i-1));if(p){p.className='st done';p.querySelector('.d').innerHTML=ic('check',12,'color:#fff');}}
+    if(S.sim.offline&&i===2){$('#s1').className='st';$('#sks').style.display='none';clearT();
+      const R=[['coorg','Coorg','Coffee hills','5 hr drive'],['mysuru','Mysuru','Palaces & food','3 hr drive'],['blr','Nandi Hills + Bengaluru','City break','1.5 hr drive']];
+      $('#er').innerHTML=`<div class="err fade"><b>Can’t check flights right now</b><div style="margin-top:4px">I can still plan everything you can reach by road. I’ll keep checking your flight home and confirm it before you pay.</div></div>
+      <div class="lbl" style="margin-top:14px">Road trips from Bengaluru</div><div id="road">${R.map(([k,n,sb,t])=>`<button class="road" onclick="S.sim.offline=false;S.edge=null;S.flightPending=true;S.plan='${k}';go('plan')"><span class="icb">${ic('car')}</span><span style="flex:1;text-align:left"><b>${n}</b><span class="muted" style="display:block">${sb} · ${t}</span></span><b>${inr(meTotal(k))}</b></button>`).join('')}</div>
+      <button class="link" style="margin-top:10px" onclick="S.sim.offline=false;S.edge=null;render()">Try flights again</button>`;return;}
+    const e=$('#s'+i);if(e)e.className='st on';
+  },400+i*550)));
+  timers.push(setTimeout(()=>{if(S.screen==='planning'&&!S.sim.offline)go('plan');},400+st.length*550+250));
+}
+
+/* ================= 4 plan ================= */
+function plan(){
+  const p=PLANS[S.plan],me=meTotal(),over=me>S.budget&&!S.booked;
+  let h=hdr(S.booked?'Your trip · booked':'Your holiday',`${dates()} · ${p.name}`,S.booked?'done':'context')+`<div class="fade" style="padding-bottom:${S.booked?140:230}px">
+  <div class="sec">${S.booked?'':`<div class="lbl">Pick a place</div><div class="opts">${Object.entries(PLANS).map(([k,o])=>{const ok=fits(k);return `<button class="opt ${S.plan===k?'on':''} ${ok?'':'off'}" onclick="${ok?`S.plan='${k}';plan()`:`toast('${o.name} needs at least till Saturday')`}">${k===bestPlace()&&ok?'<div class="best">Best match</div>':`<div class="best" style="color:#bbb">${ok?'Option':'Needs till Sat'}</div>`}<div class="n">${o.name}</div><div class="muted">${o.sub} · ${o.travel}</div><div class="p">${ok?inr(meTotal(k)):'—'}</div></button>`}).join('')}</div>`}
+   <div class="why1"><span class="ai" style="flex:none">${ic('spark',11)} Why</span><span>${whyText()}</span></div>
+   ${S.notes.length?`<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:10px"><span class="muted">Noted for hosts:</span>${S.notes.map((n,i)=>`<span class="note">${n} <button onclick="S.notes.splice(${i},1);plan()">${ic('x',10)}</button></span>`).join('')}</div>`:''}
+   ${S.plan==='coorg'?`<div class="info">${ic('moon',18)}<span style="flex:1;text-align:left"><b>${S.checked?'Adapted on Wednesday':'3 items stay flexible'}</b><br>${S.checked?(S.en?EN[S.en].label+': your trip changed to fit':'Updated at your Wednesday check-in'):'We’ll check your energy on Wed, 5 PM'}</span></div>`:''}
+   ${S.flightPending?`<div class="pend">${ic('plane',18)}<span><b>Flight home not confirmed yet</b><br>I’ll keep checking and confirm it before you pay.</span></div>`:''}
+   ${over?`<div class="warn fade"><div class="row sp"><b>${inr(me-S.budget)} over your ${inr(S.budget)} budget</b><button class="btn sm" id="savebtn" style="width:auto;padding:0 14px;height:36px" onclick="saveSheet()">See ways to save</button></div><div class="chips" style="margin-top:8px">${S.end>5?`<button class="chip" onclick="fix('short')">End on Saturday</button>`:''}${S.plan==='coorg'&&S.alt.t2==null?`<button class="chip" onclick="fix('stay')">Homestay</button>`:''}${S.plan!=='blr'?`<button class="chip" onclick="fix('blr')">Stay in Bengaluru</button>`:''}<button class="chip" onclick="fix('raise')">Raise budget</button></div>${meTotal('blr')>S.budget?`<div style="margin-top:8px">Nothing fits ${inr(S.budget)} for these dates. Lowest is ${inr(meTotal('blr'))}.</div>`:''}</div>`:''}
+  </div>
+  <div class="work"><span style="color:var(--blue)">${ic('brief')}</span><div style="flex:1"><b>Mon – Wed · Work trip</b><div class="muted">Not changed</div></div><div style="text-align:right"><b>${inr(coTotal())}</b><div><span class="tag co">Company</span></div></div></div>`;
+  days().forEach(d=>{h+=`<div class="dayh"><b>${d.d}</b><span class="muted">${d.n||''}</span></div><div>${d.items.map(itemRow).join('')}${d.dow===2&&S.who==='partner'?itemRow(items().find(i=>i.id==='pp')):''}</div>`;});
+  if(S.added.length)h+=`<div class="dayh"><b>Added by you</b></div>${S.added.map(itemRow).join('')}`;
+  scr.innerHTML=h+`</div>`;
+  if(S.booked){bar(`<div class="row sp"><div><div class="muted">Booked · changes are free till 6 PM</div><div class="price">${inr(me)}</div></div><button class="btn" style="width:150px" onclick="go('done')">Done</button></div>`);return;}
+  bar(`<div class="ask"><span style="color:var(--or)">${ic('spark',16)}</span><input id="askIn" placeholder="Ask AI… e.g. “near a beach”, “vegetarian”" onkeydown="if(event.key==='Enter')askFree()"><button onclick="askFree()">${ic('send',15)}</button></div>
+   <div class="qa" style="margin:8px -16px 10px">${['Cheaper stay','Add a spa','Less driving'].map(c=>`<button class="chip" onclick="ask('${c}')">${c}</button>`).join('')}</div>
+   <div class="row sp"><button onclick="ledger()" style="text-align:left"><div class="muted">You pay <span class="link" style="font-size:12px">· details</span></div><div class="price" style="color:${over?'var(--yel)':'var(--ink)'}">${inr(me)}</div><div class="muted" style="font-size:11.5px">${over?'Over budget':'Budget '+inr(S.budget)}</div></button><button class="btn" style="width:160px" onclick="go('review')">Review & book</button></div>`);
+}
+function whyText(){
+  const W={explore:{coorg:'You want to explore. Coorg has hills, coffee and local food, with one relaxed thing a day.'},team:{pondy:'You want to socialise. Pondicherry has lively cafés and beach evenings, with free time left open.'},unwind:{coorg:'You want to recharge. One great stay with a spa, and no hotel-hopping.'}};
+  return (S.feel&&W[S.feel][S.plan])||PLANS[S.plan].why;
+}
+function setFeel(k){
+  S.feel=k;S.dm={};const pl=bestPlace();S.plan=pl;
+  if(k==='unwind'){S.alt.t2=3;S.locks.add('t2');}else{delete S.alt.t2;}
+  drawFeel();drawSlots();toast(`${MOODS[k].name}: AI will suggest ${PLANS[pl].name}`);
+}
+function drawFeel(){
+  $('#feel').innerHTML=Object.entries(MOODS).map(([k,m])=>`<button class="fcard ${S.feel===k?'on':''}" onclick="setFeel('${k}')"><span class="fi" style="background:${m.bg};color:${m.c}">${ic(m.icon,20)}</span><b>${m.name}</b><span>${m.ex}</span></button>`).join('');
+}
+function itemRow(i){
+  if(!i)return'';const lk=S.locks.has(i.id);
+  return `<div class="it ${i.flex?'flexi':''} ${S.hl.has(i.id)?'hl':''}" id="i-${i.id}"><div class="icb">${ic(i.kind||'leaf')}</div>
+   <div class="m"><div class="muted" style="font-size:11.5px;font-weight:600">${i.t||''}</div><div class="tt">${i.title}</div><div class="mm">${i.meta||''}</div>
+   ${i.flex?`<div style="margin-top:4px"><span class="tag flex">${ic('moon',11)} ${i.picked?'Your pick':S.checked?'Matched on Wed':'Flexible till Wed'}</span></div>`:''}
+   ${i.team?`<button class="link" style="margin-top:6px" onclick="invite()">${S.invited?'See invite':'Invite friends or colleagues →'}</button>`:''}
+   ${(i.alts||i.why)&&!i.co?`<div class="ac">${i.why?`<button onclick="why('${i.id}')">${ic('info',14)} Why</button>`:''}${i.alts?`<button onclick="change('${i.id}')">${ic('swap',14)} Change</button>`:''}<button class="lk" onclick="lock('${i.id}')">${ic('lock',14)} ${lk?'Locked':'Lock'}</button></div>`:''}
+   </div><div class="pr">${i.free?'<span class="muted">Free</span>':inr(i.cost)}<div><span class="tag ${i.co?'co':'me'}">${i.co?'Company':'You'}</span></div></div></div>`;
+}
+function saveSheet(){
+  const me=meTotal(),ok=me<=S.budget,c=S.plan==='coorg';
+  const stays=[[null,'AI pick'],[4,'Coffee estate homestay'],[5,'Private room in a local home'],[0,'Fernhill Estate']];
+  const cur=S.alt.t2??null;
+  const stayCost=i=>{const k=S.alt.t2;if(i===null)delete S.alt.t2;else S.alt.t2=i;const v=resolve(rawById('t2')).cost;if(k==null)delete S.alt.t2;else S.alt.t2=k;return v;};
+  const base=stayCost(cur);
+  openSheet(`<div class="row sp"><div class="h">Ways to save</div><span class="tag ${ok?'ok':'me'}" style="font-size:12px">${ok?'Within budget ✓':inr(me-S.budget)+' over'}</span></div>
+  <div class="muted">You pay <b style="color:var(--ink)">${inr(me)}</b> · budget ${inr(S.budget)}. Tap to apply.</div>
+  ${c?`<div class="lbl" style="margin-top:14px">Stay like a local</div>${stays.map(([i,l])=>{const o=resolve({...rawById('t2'),id:'t2'});const v=stayCost(i);const d=v-base;const sel=cur===i;return `<button class="alt ${sel?'on':''}" onclick="${i===null?`delete S.alt.t2`:`S.alt.t2=${i}`};S.locks.delete('t2');plan();saveSheet()"><span class="radio" style="${sel?'border-color:var(--or)':''}">${sel?'<i style="width:10px;height:10px;border-radius:50%;background:var(--or);display:block"></i>':''}</span><span style="flex:1"><b>${l}</b><span class="muted" style="display:block">${i===null?'Current pick':(rawById('t2').alts[i].meta)}</span></span><span class="${d>0?'up':'dn'}">${sel?'Current':(d>0?'+':'−')+inr(Math.abs(d))}</span></button>`}).join('')}
+  <div class="lbl" style="margin-top:14px">Get around like a local</div>
+  ${[['t1',0,'AC bus to Coorg instead of a cab',4800-950],['u1',1,'AC sleeper bus back to the airport',5200-900]].map(([id,ix,l,sv])=>{const on=S.alt[id]===ix;return `<button class="alt ${on?'on':''}" onclick="${on?`delete S.alt.${id}`:`S.alt.${id}=${ix}`};plan();saveSheet()"><span class="cbx ${on?'on':''}">${on?ic('check',12):''}</span><span style="flex:1"><b>${l}</b></span><span class="dn">−${inr(sv)}</span></button>`}).join('')}`:`<p class="muted" style="margin-top:12px">Cheaper stays and buses are shown for Coorg in this demo.</p>`}
+  <div class="lbl" style="margin-top:14px">Shorter or closer</div>
+  <div class="chips">${S.end>5?`<button class="chip" onclick="fix('short');saveSheet()">End on Saturday</button>`:''}${S.plan!=='blr'?`<button class="chip" onclick="fix('blr');saveSheet()">Stay in Bengaluru</button>`:''}</div>
+  <button class="btn" style="margin-top:16px" onclick="closeSheet()">Done</button>`);
+}
+function hl(ids){ids.forEach(i=>S.hl.add(i));setTimeout(()=>{ids.forEach(i=>S.hl.delete(i));document.querySelectorAll('.it.hl').forEach(e=>e.classList.remove('hl'));},1800);}
+function lock(id){S.locks.has(id)?S.locks.delete(id):S.locks.add(id);toast(S.locks.has(id)?'Locked. AI won’t change this.':'Unlocked');plan();}
+function fix(f){
+  if(f==='short'){S.end=5;toast('Trip now ends Saturday');}
+  if(f==='stay'){S.alt.t2=4;S.locks.delete('t2');hl(['t2']);toast('Changed to a coffee estate homestay');}
+  if(f==='blr'){S.plan='blr';toast('Switched to Bengaluru');}
+  if(f==='raise'){S.budget=Math.ceil(meTotal()/1000)*1000;toast('Budget is now '+inr(S.budget));}
+  plan();
+}
+function ask(q){
+  if(S.plan!=='coorg'&&q!=='Cheaper stay'){toast('Try this on the Coorg plan');return;}
+  if(q==='Cheaper stay'){if(S.plan!=='coorg'){toast('Already the cheapest stay here');return;}if(S.locks.has('t2')){toast('Misty Ridge is locked. Unlock it first.');return;}S.alt.t2=0;hl(['t2']);toast('Cheaper stay: Fernhill Estate');}
+  if(q==='Add a spa'){if(!S.added.find(a=>a.id==='spa'))S.added.push({id:'spa',t:'5:00 PM',kind:'leaf',title:'Ayurvedic massage',meta:'75 min · at the estate',cost:2800});hl(['spa']);toast('Spa added: +₹2,800');}
+  if(q==='Less driving'){S.alt.u1=0;hl(['u1']);toast('Cab + short flight: 2.5 hrs less driving');}
+  plan();
+}
+function askFree(){
+  const el=$('#askIn');const v=(el&&el.value||'').trim();if(!v)return;const l=v.toLowerCase();
+  if(/cheap|budget|save/.test(l))return ask('Cheaper stay');
+  if(/spa|massage/.test(l))return ask('Add a spa');
+  if(/driv|far|tired of road/.test(l))return ask('Less driving');
+  if(/beach|sea|coast/.test(l)){if(fits('pondy')){S.plan='pondy';plan();toast('Switched to Pondicherry: beach & cafés');}else toast('A beach needs at least till Saturday');return;}
+  if(/city|no travel|stay in bengaluru/.test(l)){S.plan='blr';plan();toast('Switched to a Bengaluru city break');return;}
+  if(/quiet|calm|relax/.test(l)){FLEX.forEach(f=>S.dm[f]='unwind');hl(FLEX);plan();toast('Made the flexible days calmer');return;}
+  if(/trek|adventure|hike/.test(l)){S.dm.f1='explore';hl(['f1']);plan();toast('Friday is now a trek');return;}
+  S.notes.push(/veg/.test(l)?'Vegetarian meals':v.length>28?v.slice(0,28)+'…':v);plan();toast('Noted. I’ll pass this to your hosts.');
+}
+
+/* ================= sheets ================= */
+function openSheet(h){$('#sheet').innerHTML='<div class="grab"></div>'+h;$('#sheet').classList.add('on');$('#scrim').classList.add('on');}
+function closeSheet(){$('#sheet').classList.remove('on');$('#scrim').classList.remove('on');}
+$('#scrim').onclick=closeSheet;
+function why(id){const r=rawById(id),c=resolve(r);
+  openSheet(`<span class="ai">${ic('spark',12)} Why AI picked this</span><div class="h" style="margin-top:8px">${c.title}</div>
+  <div style="margin-top:10px">${r.why.map(w=>`<div class="tick">${ic('check',16)}<span>${w}</span></div>`).join('')}</div>
+  ${r.also?`<div class="lbl" style="margin-top:14px">Also checked</div>${r.also.map(a=>`<div class="row sp" style="padding:8px 0;border-bottom:1px solid var(--line)"><span>${a[0]}</span><span class="muted">${a[1]}</span></div>`).join('')}`:''}
+  <div class="row" style="gap:8px;margin-top:16px">${r.alts?`<button class="btn out" onclick="change('${id}')">See options</button>`:''}<button class="btn" onclick="closeSheet()">Got it</button></div>`);}
+function change(id){const r=rawById(id),cur=resolve(r);
+  const opts=[null].concat(r.alts.map((_,i)=>i)).map(idx=>{const keep=S.alt[id];if(idx===null)delete S.alt[id];else S.alt[id]=idx;const o=resolve(r);if(keep==null)delete S.alt[id];else S.alt[id]=keep;return {...o,idx};});
+  openSheet(`<div class="h">Change this</div><div class="muted">Only this item changes</div>
+  ${opts.map(o=>{const sel=(S.alt[id]??null)===o.idx;const d=o.cost-cur.cost;return `<button class="alt ${sel?'on':''}" onclick="pick('${id}',${o.idx})"><span class="radio" style="${sel?'border-color:var(--or)':''}">${sel?'<i style="width:10px;height:10px;border-radius:50%;background:var(--or);display:block"></i>':''}</span><span style="flex:1"><b>${o.title}</b>${o.idx===null?' <span class="tag ok">AI pick</span>':''}<span class="muted" style="display:block">${o.meta}</span></span><span style="text-align:right"><b>${inr(o.cost)}</b><span style="display:block" class="${d>0?'up':'dn'}">${sel?'Current':(d>0?'+':'−')+inr(Math.abs(d))}</span></span></button>`}).join('')}`);}
+function pick(id,idx){if(idx===null)delete S.alt[id];else S.alt[id]=idx;S.locks.delete(id);closeSheet();hl([id]);plan();toast('Changed. Nothing else moved.');}
+function ledger(){openSheet(`<div class="h">Who pays what</div><div class="box2"><div style="background:var(--blue-lt)"><div class="muted" style="color:var(--blue);font-weight:600">Company</div><div class="price">${inr(coTotal())}</div><div class="muted">${S.slip?'+1 work night':'Not changed'}</div></div><div style="background:var(--or-lt)"><div class="muted" style="color:var(--or-dk);font-weight:600">You</div><div class="price">${inr(meTotal())}</div><div class="muted">Holiday part</div></div></div><p class="muted" style="margin-top:12px">You get two separate invoices.</p><button class="btn" style="margin-top:14px" onclick="closeSheet()">Done</button>`);}
+function invite(){
+  openSheet(`<div class="h">Invite friends or colleagues?</div><div class="muted">Riya and Dev were in your last meeting. You can also share with friends.</div>
+  <div class="inv"><div class="ih"><div style="font-size:11px;opacity:.85;font-weight:600">THEY WILL SEE</div><div style="font-size:16px;font-weight:700;margin-top:4px">Group dinner tonight, 8 PM</div><div style="font-size:13px">Indiranagar · each pays own</div></div><div class="ib">${ic('shield',14,'color:var(--green);vertical-align:-2px')} They won’t see the rest of your holiday.</div></div>
+  <div class="row" style="gap:8px;margin-top:16px"><button class="btn out" style="width:110px" onclick="closeSheet()">Skip</button><button class="btn" onclick="sendInv()">${S.invited?'Sent ✓':'Send invite'}</button></div>`);
+}
+function sendInv(){closeSheet();if(S.invited)return;toast('Invite sent');setTimeout(()=>{S.invited=true;toast(`${ic('people',18)} <span><b>Riya is coming!</b> Table updated.</span>`,'w',3200);if(S.screen==='plan')plan();},2000);}
+
+/* ================= 5 review ================= */
+function review(){
+  const p=PLANS[S.plan],its=items().filter(i=>!i.co&&i.cost),flex=items().filter(i=>i.flex).length;
+  scr.innerHTML=hdr('Confirm & book',`${p.name} · ${dates()}`,'plan')+`<div class="fade" style="padding-bottom:120px">
+  <div class="sec"><div class="lbl">Who pays</div><div class="box2" style="margin-top:0"><div style="background:var(--blue-lt)"><div class="muted" style="color:var(--blue);font-weight:600">Company</div><div class="price">${inr(coTotal())}</div><div class="muted">Not changed</div></div><div style="background:var(--or-lt)"><div class="muted" style="color:var(--or-dk);font-weight:600">You</div><div class="price">${inr(meTotal())}</div><div class="muted">${its.length} items</div></div></div>
+   <div class="rv">${ic('shield',18,'color:var(--green)')}<span><b>Within Acme travel policy</b><br><span class="muted">Your company pays the same. No approval needed.</span></span></div>
+   ${S.flightPending?`<div class="rv">${ic('plane',18,'color:var(--yel)')}<span><b>Flight home pending</b><br><span class="muted">We’ll confirm it before charging you.</span></span></div>`:''}
+   ${flex?`<div class="rv">${ic('moon',18,'color:#5B3FD0')}<span><b>${flex} items stay flexible</b><br><span class="muted">Free to change till Wed 6 PM. We’ll check in at 5 PM.</span></span></div>`:''}</div>
+  <div class="sec"><button class="row sp" style="width:100%" onclick="S.priv=!S.priv;review()"><span style="text-align:left"><b>Keep holiday private</b><span class="muted" style="display:block">Travel desk sees only “Personal leave”</span></span><span class="sw ${S.priv?'on':''}"></span></button></div>
+  <div class="sec"><div class="lbl">Note for your manager</div><div class="muted" style="font-size:13px;color:var(--grey2)">“Taking personal leave Thu–${DOW[S.end]} in Bengaluru. I’m paying for the extra days.”</div><button class="link" style="margin-top:8px" onclick="toast('Copied')">Copy message</button></div></div>`;
+  bar(`<div class="row sp"><div><div class="muted">You pay</div><div class="price">${inr(meTotal())}</div></div><button class="btn" style="width:180px" onclick="go('book')">Hold & book</button></div>`);
+}
+
+/* ================= 6 book ================= */
+function book(){
+  clearT();bar('');
+  const its=items().filter(i=>!i.co&&!i.free&&i.title);S.bl=its;S.bs=its.map(()=>'');
+  scr.innerHTML=hdr('Booking your holiday',inr(meTotal())+' · you pay once','review')+`<div class="pad fade" style="padding-bottom:120px">
+  <div class="row" id="holdnote" style="padding:12px;border-radius:10px;background:var(--green-lt);color:#0b5e40;font-size:13px">${ic('shield',18)}<span>We hold everything first. You pay only if all items are confirmed.</span></div>
+  <div id="hl" style="margin-top:6px"></div><div id="bm"></div></div>`;
+  drawHolds();runHolds(0);
+}
+function drawHolds(){const lab={ing:'Holding…',ok:'Held',pa:'Paused',fl:'Sold out'};$('#hl').innerHTML=S.bl.map((i,n)=>{const s=S.bs[n];return `<div class="hold ${s}"><div class="s">${s==='ok'?ic('check',12,'color:#fff'):s==='fl'?ic('x',11,'color:#fff'):''}</div><div class="n">${i.title}<small>${s==='ok'&&i.flex?'Held · free to change till Wed':lab[s]||'Waiting'}</small></div><b>${inr(i.cost)}</b></div>`}).join('');}
+function runHolds(from){
+  for(let n=from;n<S.bl.length;n++)timers.push(setTimeout(()=>{
+    if(S.screen!=='book')return;if(n>0&&S.bs[n-1]==='ing')S.bs[n-1]='ok';
+    const it=S.bl[n];
+    if(S.sim.soldout&&it.id==='t2'&&S.alt.t2==null&&!S.soldDone){S.bs[n]='fl';drawHolds();clearT();
+      $('#bm').innerHTML=`<div class="err fade"><b>Misty Ridge just sold out</b><div style="margin-top:4px">Nothing was charged. Closest match: <b>Fernhill Estate</b>, same area, cheaper.</div><div class="row" style="gap:8px;margin-top:10px"><button class="chip" onclick="S.soldDone=true;S.alt.t2=0;book()">Use Fernhill</button><button class="chip" onclick="S.soldDone=true;go('plan');change('t2')">See others</button></div></div>`;return;}
+    S.bs[n]='ing';drawHolds();
+    if(S.sim.overrun&&S.plan==='coorg'&&!S.slip&&n===2){clearT();timers.push(setTimeout(()=>{S.bs[n]='pa';drawHolds();
+      toast(`${ic('cal',18)} <span><b>Calendar update</b><br>Your Thursday meeting moved to 11 AM.</span>`,'w',3800);
+      $('#bm').innerHTML=`<div class="warn fade"><b>Booking paused</b><div style="margin-top:4px">Your Thursday changed. Nothing is charged yet.</div><button class="btn sm" style="margin-top:10px;background:var(--ink)" onclick="go('slip')">See what changes</button></div>`;},800));return;}
+  },400+(n-from)*600));
+  timers.push(setTimeout(()=>{if(S.screen!=='book')return;S.bs=S.bs.map(()=>'ok');drawHolds();
+    bar(`<div class="row sp"><div><div class="muted">All held · you pay</div><div class="price">${inr(meTotal())}</div></div><button class="btn" style="width:170px" onclick="S.edge=null;go('done')">Pay now</button></div>`);},400+(S.bl.length-from)*600+150));
+}
+
+/* ================= slip ================= */
+function slip(){
+  clearT();
+  scr.innerHTML=hdr('Your plan changed','Meeting moved to Thu, 11 AM','book')+`<div class="pad fade" style="padding-bottom:140px">
+  <span class="ai">${ic('spark',12)} AI fixed it</span><div class="h" style="margin-top:8px">3 things change</div>
+  ${[['Wed night','Nook House · you pay ₹3,900','Company hotel · company pays'],['Cab to Coorg','Thu, 8 AM','Thu, 2 PM'],['Estate walk','Thu','Sat morning']].map(r=>`<div class="chg"><div class="l">${r[0]}</div><div class="a">${r[1]}</div><div>${ic('arrow',14,'color:#aaa')}</div><div class="b">${r[2]}</div></div>`).join('')}
+  <div class="row" style="margin-top:12px;gap:6px;font-size:13px">${ic('lock',14)} Not changed: Misty Ridge, Friday, Saturday, flight home.</div>
+  <div class="box2"><div style="background:var(--green-lt)"><div class="muted">You save</div><div class="price" style="color:var(--green)">₹3,900</div></div><div style="background:var(--blue-lt)"><div class="muted">Company adds</div><div class="price" style="color:var(--blue)">₹5,600</div><div class="muted" style="font-size:11px">Work night · allowed</div></div></div></div>`;
+  bar(`<button class="btn" onclick="S.slip=true;go('book')">Update and continue</button><button class="btn out" style="margin-top:8px;height:42px" onclick="S.sim.overrun=false;go('book')">Keep my old plan</button>`);
+}
+
+/* ================= 7 done ================= */
+function done(){
+  clearT();S.booked=true;
+  scr.innerHTML=`<div class="fade" style="padding-bottom:120px"><div class="sec" style="text-align:center;padding:28px 16px"><div style="width:60px;height:60px;border-radius:50%;background:var(--green);display:grid;place-items:center;margin:0 auto;color:#fff">${ic('check',30)}</div><div class="h" style="margin-top:12px">Holiday booked!</div><div class="muted">${PLANS[S.plan].name} · ${dates()}</div></div>
+  <div class="sec"><div class="lbl">Invoices</div><div class="box2" style="margin-top:0"><div style="background:var(--blue-lt)"><div class="muted" style="color:var(--blue);font-weight:600">Company</div><div class="price">${inr(coTotal())}</div></div><div style="background:var(--or-lt)"><div class="muted" style="color:var(--or-dk);font-weight:600">You</div><div class="price">${inr(meTotal())}</div></div></div></div>
+  ${S.plan==='coorg'&&!S.checked?`<div class="sec"><div class="lbl">What happens next</div><div class="rv" style="margin-top:0">${ic('cal',18,'color:var(--or)')}<span><b>Wed 25 Nov, 5 PM</b><br><span class="muted">After your last meeting, we’ll ask how you feel and adjust 3 items for free.</span></span></div><button class="btn" id="preview" style="margin-top:12px;background:#5B3FD0" onclick="go('checkin')">Preview Wednesday check-in ${ic('arrow',16)}</button></div>`:''}
+  <div class="sec"><button class="row sp" style="width:100%" onclick="go('plan')"><span><b>View full trip</b></span>${ic('right',16)}</button></div></div>`;
+  bar(`<button class="btn out" onclick="S=S0();go('trips')">Back to trips</button>`);
+}
+
+/* ================= 8 check-in (swipe) ================= */
+function checkin(){clearT();S.plan='coorg';S.booked=true;S.en=null;S.sw={i:0,keep:{}};drawEnergy();}
+function drawEnergy(){
+  scr.innerHTML=hdr('How are you feeling?','Wed, 25 Nov · 5:04 PM','done')+`<div class="pad fade" style="padding-bottom:120px">
+  <div class="notif"><div class="appic">${ic('spark',18)}</div><div style="flex:1"><div class="row sp"><b style="font-size:13px">cleartrip</b><span class="muted" style="font-size:11px">now</span></div><div style="font-size:13px">Work’s done (almost)! How’s your energy?</div></div></div>
+  <div class="h" style="margin-top:18px">Your trip adapts to you</div><div class="muted" style="margin-bottom:12px">Pick what’s true right now. Changes are free till 6 PM.</div>
+  <div id="en">${Object.entries(EN).map(([k,e])=>`<button class="mood" onclick="pickEnergy('${k}')"><span class="mi" style="background:${e.bg};color:${e.c}">${ic(e.icon,20)}</span><span style="flex:1"><span class="mt">${e.label}</span><span class="md" style="display:block">${e.line}</span></span>${ic('right',16,'color:#bbb')}</button>`).join('')}</div>
+  <div class="muted" style="display:flex;gap:6px;align-items:center;margin-top:8px">${ic('cal',14)} 14 meetings this week. Only you see this.</div></div>`;
+  bar(`<button class="btn out" onclick="S.checked=true;go('plan');toast('Kept your plan')">Keep my plan as it is</button>`);
+}
+function pickEnergy(k){
+  if(k==='okay'){S.sw={i:0,keep:{}};drawSwipe();return;}
+  const before=items('coorg');S.en=k;const after=items('coorg');S.en=null;
+  const ch=after.filter(a=>a.adapted).map(a=>{const b=before.find(x=>x.id===a.id)||{};return [b,a];});
+  const d=after.reduce((s,i)=>s+(i.cost||0),0)-before.reduce((s,i)=>s+(i.cost||0),0);
+  const e=EN[k];
+  scr.innerHTML=hdr('Your trip adapts','Wed, 25 Nov · 5:05 PM','checkin')+`<div class="pad fade" style="padding-bottom:140px">
+  <span class="tag" style="background:${e.bg};color:${e.c};font-size:12px">${ic(e.icon,12)} ${e.label}</span>
+  <div class="h" style="margin-top:8px">${{drained:'Rest tonight. Leave tomorrow, slowly.',buzzing:'Let’s go tonight.',late:'No rush. I’ve moved tonight around.'}[k]}</div>
+  <div class="muted">Only these change. Everything else stays booked.</div>
+  ${ch.map(([b,a])=>`<div class="chg"><div class="l">${a.t||b.t||''}</div><div class="a">${b.t&&b.t!==a.t?b.t+' · ':''}${b.title}</div><div>${ic('arrow',14,'color:#aaa')}</div><div class="b">${a.t&&b.t!==a.t?a.t+' · ':''}${a.title}<span class="muted" style="display:block;font-weight:400">${a.meta}</span></div></div>`).join('')}
+  <div class="box2"><div style="background:${d>0?'var(--yel-lt)':'var(--green-lt)'}"><div class="muted">Change in price</div><div class="price" style="color:${d>0?'var(--yel)':'var(--green)'}">${d===0?'Same':(d>0?'+':'−')+inr(Math.abs(d))}</div></div><div style="background:var(--bg)"><div class="muted">Fees</div><div class="price">₹0</div><div class="muted" style="font-size:11px">Free till 6 PM</div></div></div>
+  <button class="link" style="margin-top:14px" onclick="S.en='${k}';S.sw={i:0,keep:{}};drawSwipe()">Also fine-tune the days with swipe cards →</button></div>`;
+  bar(`<div class="row" style="gap:8px"><button class="btn out" style="width:120px" onclick="drawEnergy()">Back</button><button class="btn" onclick="S.en='${k}';S.checked=true;go('plan');hl([${ch.map(c=>`'${c[1].id}'`).join(',')}]);plan();toast('Trip updated · no fees')">Update my trip</button></div>`);
+}
+function drawSwipe(){
+  const i=S.sw.i,fin=i>=VCARDS.length;
+  let h=hdr('Fine-tune your days','Swipe right for yes','checkin')+`<div class="pad fade" style="padding-bottom:120px">
+  <div class="notif" style="display:none"><div class="appic">${ic('spark',18)}</div><div style="flex:1"><div class="row sp"><b style="font-size:13px">cleartrip</b><span class="muted" style="font-size:11px">now</span></div><div style="font-size:13px">Meetings done! Swipe what you feel like.</div></div></div>`;
+  if(!fin){
+    const c=VCARDS[i],n=VCARDS[i+1];
+    h+=`<div class="deck">${n?card(n,'back'):''}${card(c,'top')}</div>
+    <div class="sbtn"><button onclick="decide(false)" style="color:#999" aria-label="Skip">${ic('x',26)}</button><button onclick="decide(true)" style="color:var(--or)" aria-label="Yes">${ic('check',28)}</button></div>
+    <div class="dots">${VCARDS.map((_,j)=>`<i class="${j<=i?'on':''}"></i>`).join('')}</div>
+    <div class="muted" style="display:flex;gap:6px;align-items:center;justify-content:center;margin-top:10px">${ic('cal',14)} Busy week (14 meetings), so calm cards come first</div>`;
+    scr.innerHTML=h+`</div>`;bindCard();
+    bar(`<button class="btn out" onclick="S.checked=true;go('plan');toast('Kept your plan')">Skip</button>`);
+  } else {
+    const picks=Object.entries(S.sw.keep);
+    h+=`<div class="h" style="margin-top:16px">${picks.length?'Here’s what changes':'Nothing picked'}</div><div class="muted">${picks.length?'Free to change. Hotels and flight stay the same.':'Your plan stays as it is.'}</div>
+     ${picks.map(([slot,m])=>{const it=MOODS[m][slot];return `<div class="res"><span style="width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:${MOODS[m].bg};color:${MOODS[m].c}">${ic(MOODS[m].icon,20)}</span><div style="flex:1"><div class="muted" style="font-size:11.5px">${{w3:'Tonight',f1:'Friday',s1:'Saturday'}[slot]}</div><b>${it.title}</b></div><b>${it.cost?inr(it.cost):'Free'}</b></div>`}).join('')}`;
+    scr.innerHTML=h+`</div>`;
+    bar(`<div class="row" style="gap:8px"><button class="btn out" style="width:120px" onclick="S.sw={i:0,keep:{}};drawSwipe()">Redo</button><button class="btn" onclick="applySwipe()">${picks.length?'Update my trip':'Continue'}</button></div>`);
+  }
+}
+function card(c,cls){const it=MOODS[c.m][c.slot];return `<div class="vc ${cls}" ${cls==='top'?'id="vtop"':''} style="background:${GRAD[c.m]}"><div class="row sp"><span class="when">${c.when}</span></div><div class="stamp y">YES</div><div class="stamp n">SKIP</div><div class="big">${ic(MOODS[c.m].icon,40,'color:#fff')}</div><div><div class="vt">${it.title}</div><div class="vp">${it.meta} · ${it.cost?inr(it.cost):'Free'}</div></div></div>`;}
+function bindCard(){
+  const el=$('#vtop');if(!el)return;let x0=null,dx=0;
+  el.addEventListener('pointerdown',e=>{x0=e.clientX;el.setPointerCapture(e.pointerId);el.style.transition='none';});
+  el.addEventListener('pointermove',e=>{if(x0===null)return;dx=e.clientX-x0;el.style.transform=`translateX(${dx}px) rotate(${dx/18}deg)`;el.querySelector('.y').style.opacity=Math.max(0,dx/90);el.querySelector('.n').style.opacity=Math.max(0,-dx/90);});
+  el.addEventListener('pointerup',()=>{x0=null;el.style.transition='';if(Math.abs(dx)>90)decide(dx>0);else{el.style.transform='';el.querySelectorAll('.stamp').forEach(s=>s.style.opacity=0);}dx=0;});
+}
+function decide(yes){
+  const el=$('#vtop'),c=VCARDS[S.sw.i];if(!c)return;
+  if(yes)S.sw.keep[c.slot]=c.m;
+  if(el){el.style.transform=`translateX(${yes?420:-420}px) rotate(${yes?20:-20}deg)`;el.style.opacity=0;el.querySelector(yes?'.y':'.n').style.opacity=1;}
+  setTimeout(()=>{S.sw.i++;drawSwipe();},260);
+}
+function applySwipe(){const picks=S.sw.keep;Object.assign(S.dm,picks);S.checked=true;go('plan');hl(Object.keys(picks));plan();if(Object.keys(picks).length)toast(Object.keys(picks).length+' items updated · no extra fees');if(picks.w3==='team'&&!S.invited)setTimeout(invite,900);}
+
+/* ================= annotations ================= */
+const ANN={
+ trips:[['#nudge','AI spots your free days','Reads your work trip and calendar. You type nothing.','L'],['.week','Work vs free, at a glance','Blue = work. Orange = free days.','R'],['.tag.co','Company trip stays separate','Paid by your company, never mixed.','R'],['.empty .btn','Empty state','No trips yet? Forward a booking to start.','L']],
+ context:[['#feel','How do you want to feel?','From research: 3 people wanted 3 kinds of break. This one choice shapes everything.','L'],['#wk','Stretch the trip','Drag the circle to pick your last day. No form, no chat.','R'],['#bud','Budget in one tap','Only your part. Company pays for work.','L'],['#who','Bring a partner','Adds their flight on Wednesday.','R'],['[data-slot=w3]','AI fills every day','Matches your feeling. Can change on Wed.','L'],['.slot.fixed','Travel is handled','Place is picked on the next screen.','R'],['.tray','Fine-tune any day','Drag Explore, Socialise or Recharge onto a day.','R']],
+ planning:[['#sts','AI shows its work','Real steps, not a spinner.','L'],['.err','Flights down? Go by road','The AI offers road trips instead of a dead end.','R'],['#road','Nearby by road','Coorg, Mysuru or a city break, priced.','L'],['.btn.out','Always cancellable','Stop any time.','R']],
+ plan:[['.opts','3 places, best match first','Places that don’t fit your dates are greyed out.','L'],['.why1','Why AI picked it','One line of reasoning.','R'],['.info','Two-speed plan','3 items stay flexible until Wednesday.','R'],['.warn','Over budget? Ways to save','Homestays, local homes, buses, a shorter trip.','L'],['.pend','Flight not confirmed yet','Plan by road now; flight confirmed before you pay.','L'],['.work','Work part untouched','Company cost stays the same.','L'],['.it .tag.me','Who pays: You or Company','Every item is tagged.','R'],['.it .ac','Why · Change · Lock','Change one item without starting over.','L'],['.ask','Ask AI anything','“Near a beach”, “vegetarian”, “less driving”.','R']],
+ review:[['.box2','Two wallets','Company cost unchanged. Your part separate.','L'],['.rv','Policy check','AI confirms no approval is needed.','R'],['.sec .sw','Holiday kept private','Travel desk sees only “Personal leave”.','R'],['.link','Note for your manager','Drafted for you.','L'],['.bar .btn','Hold first, pay once','Nothing is charged until all items are held.','R']],
+ book:[['#holdnote','Hold first, pay once','If any item fails, nothing is charged.','L'],['.hold.pa','Plans change mid-booking','A moved meeting pauses booking.','R'],['#bm .warn','Paused safely','Nothing charged. See what changes.','R'],['.hold.fl','Sold out while holding','AI offers the closest match.','R'],['#bm .err','Nothing charged','One tap to accept the substitute.','L']],
+ slip:[['.chg','Only what changed','Before → after. Nothing else moves.','L'],['.box2','Who pays updates itself','The work night moves to the company.','R'],['.bar .btn.out','You stay in control','Keep the old plan if you want.','R']],
+ done:[['.box2','Two clean invoices','Company and personal, never mixed.','L'],['#preview','What happens next','On Wednesday, AI checks how you feel.','R']],
+ checkin:[['.notif','Wednesday 5 PM nudge','Arrives as work ends.','L'],['#en','Plans around your energy','Drained, okay, buzzing, or still in a meeting. The trip adapts, it doesn’t restart.','R'],['.chg','Only what changes','Before → after, with the price and no fees.','L'],['.box2','Cost of adapting','Free till 6 PM.','R'],['#vtop','Swipe to fine-tune','Right = yes, left = skip.','R'],['.dots','6 quick cards','Calm cards first after a busy week.','L']],
+};
+function buildAnn(){
+  ['colL','colR'].forEach(c=>$('#'+c).innerHTML='');
+  (ANN[S.screen]||[]).forEach(a=>{const d=document.createElement('div');d.className='ann';d.dataset.sel=a[0];d.innerHTML=`<b><i></i>${a[1]}</b>${a[2]}`;$(a[3]==='L'?'#colL':'#colR').appendChild(d);});
+  placeAnn();
+}
+function placeAnn(){
+  const st=$('#stage');if(!st||getComputedStyle($('#colL')).display==='none')return;
+  const sr=st.getBoundingClientRect(),ph=document.querySelector('.phone').getBoundingClientRect();
+  let lines='';const shownAll=[];
+  ['L','R'].forEach(side=>{
+    const col=$(side==='L'?'#colL':'#colR'),cr=col.getBoundingClientRect();
+    const its=[...col.querySelectorAll('.ann')].map(el=>{
+      let t=null;for(const sel of el.dataset.sel.split(',')){const c=[...document.querySelectorAll('.phone '+sel.trim())].find(x=>x.offsetParent!==null);if(c){t=c;break;}}
+      const r=t&&t.getBoundingClientRect();const bEl=document.querySelector('.phone .bar, .phone .nav');const lim=bEl&&!(t&&bEl.contains(t))?bEl.getBoundingClientRect().top:ph.bottom-10;const vis=r&&r.bottom>ph.top+50&&r.top+12<lim&&r.height>0;
+      return {el,r,vis,y:vis?(r.top+Math.min(r.height,60)/2-cr.top):0};
+    });
+    const shown=its.filter(i=>i.vis).sort((a,b)=>a.y-b.y);its.filter(i=>!i.vis).forEach(i=>i.el.style.display='none');
+    let yy=0;
+    shown.forEach(i=>{i.el.style.display='';const h=i.el.offsetHeight;let top=Math.max(i.y-h/2,yy);top=Math.min(top,cr.height-h);i.el.style.top=top+'px';yy=top+h+10;shownAll.push({el:i.el,y:top});
+      const bx=side==='L'?cr.right-sr.left:cr.left-sr.left,by=top+h/2+cr.top-sr.top;
+      const tx=side==='L'?Math.max(i.r.left,ph.left+8)-sr.left+6:Math.min(i.r.right,ph.right-8)-sr.left-6,ty=Math.max(i.r.top+Math.min(i.r.height,60)/2,ph.top+50)-sr.top;
+      lines+=`<path d="M${bx} ${by} C ${(bx+tx)/2} ${by}, ${(bx+tx)/2} ${ty}, ${tx} ${ty}" fill="none" stroke="#FF8A5E" stroke-width="1.5" stroke-dasharray="2 4" stroke-linecap="round"/><circle cx="${tx}" cy="${ty}" r="4" fill="#FF4F17" stroke="#fff" stroke-width="1.5"/>`;});
+  });
+  $('#lines').innerHTML=lines;
+  shownAll.sort((a,b)=>a.y-b.y).forEach((o,i)=>{const n=o.el.querySelector('i');if(n.textContent!=String(i+1))n.textContent=i+1;});
+}
+setInterval(placeAnn,250);window.addEventListener('resize',placeAnn);
+
+let tt;function toast(h,c='',ms=2400){const t=$('#toast');t.className='toast '+c;t.innerHTML=h;requestAnimationFrame(()=>t.classList.add('on'));clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),ms);}
+render();
+
+</script>
+</body>
+</html>
